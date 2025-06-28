@@ -99,8 +99,8 @@
         return;
       }
 
-      if (capital < 50000 || capital > 35000000) {
-        mostrarError('El capital debe estar entre ₲50.000 y ₲35.000.000.');
+      if (capital < 100000 || capital > 35000000) {
+        mostrarError('El capital debe estar entre ₲100.000 y ₲35.000.000.');
         document.getElementById('capital').focus();
         document.getElementById('capital').select();
         document.getElementById('capital').value = '';
