@@ -48,7 +48,7 @@
         <div class="relative">
           <input type="text" id="capital"
                  class="border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg p-3 pr-12 w-full text-lg focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 dark:focus:ring-indigo-800 transition-all"
-                 placeholder="Ej: 904.500" autofocus inputmode="numeric" pattern="[0-9]*" maxlength="8">
+                 placeholder="Ej: 904.500" autofocus inputmode="numeric">
           <div id="inputSpinner" class="absolute right-3 top-1/2 transform -translate-y-1/2 hidden">
             <svg class="animate-spin h-5 w-5 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -206,8 +206,8 @@
         const diff = newLength - originalLength;
         e.target.setSelectionRange(cursorPosition + diff, cursorPosition + diff);
         
-        // Auto-cálculo para valores de 5 a 8 dígitos
-        if (value.length >= 5 && value.length <= 8) {
+        // Auto-cálculo para valores de 5 dígitos o más
+        if (value.length >= 5) {
           // Limpiar timeout anterior
           clearTimeout(autoCalculateTimeout);
           
@@ -220,7 +220,7 @@
             calcularCuota();
           }, 800);
         } else {
-          // Si no está en el rango válido, limpiar timeout y resultados
+          // Si tiene menos de 5 dígitos, limpiar timeout y resultados
           clearTimeout(autoCalculateTimeout);
           const resultados = document.getElementById('resultados');
           resultados.classList.add('hidden');
