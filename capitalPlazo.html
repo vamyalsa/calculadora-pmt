@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Vamyal S.A. | Calculadora de Cuota</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Calculadora de cuota para préstamos de Vamyal S.A.">
+  <meta name="author" content="Vamyal S.A.">
+  <meta name="theme-color" content="#4F46E5">
+  <meta name="keywords" content="Vamyal, S.A., calculadora, cuota, préstamo, financiamiento, Paraguay">
+  <meta name="robots" content="noindex, nofollow">
+  <meta property="og:title" content="Calculadora de Cuota - Vamyal S.A.">
+  <meta property="og:description" content="Calculadora de cuota para préstamos de Vamyal S.A.">
+  <meta property="og:image" content="https://vamyal.com/images/vamyalLogo.min.png">
+  <meta property="og:url" content="https://vamyalsa.github.io/calculadora-pmt">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Vamyal S.A.">
+  <link rel="icon" href="https://vamyal.com/favicon.ico" type="image/x-icon">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+ 
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            'sans': ['Montserrat', 'ui-sans-serif', 'system-ui'],
+          }
+        }
+      }
+    }
+  </script>
+  <script>
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      document.documentElement.classList.add('dark');
+    }
+  </script>
+</head>
+
+<body class="min-h-screen flex flex-col items-center justify-center p-6 bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-100">
+  <div class="bg-white dark:bg-gray-800 shadow-xl rounded-2xl p-8 w-full max-w-lg">
+
+    <h1 class="text-3xl font-bold text-center mb-8 text-gray-900 dark:text-white">Calculadora de Cuota</h1>
+
+    <div class="space-y-4">
+      <div>
+        <label for="capital" class="block text-base font-medium text-gray-700 dark:text-gray-300 mb-2">Capital</label>
+        <input type="text" id="capital"
+               class="border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg p-3 w-full text-lg focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 dark:focus:ring-indigo-800 transition-all"
+               placeholder="Ej: 904.500" autofocus>
+      </div>
+
+      <div>
+        <label for="plazo" class="block text-base font-medium text-gray-700 dark:text-gray-300 mb-2">Plazo (en meses)</label>
+        <input type="number" id="plazo"
+               class="border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg p-3 w-full text-lg focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 dark:focus:ring-indigo-800 transition-all"
+               placeholder="Ej: 8">
+      </div>
+
+      <button id="calcularBtn"
+              class="w-full bg-indigo-600 text-white py-3 px-6 rounded-lg font-semibold text-lg hover:bg-indigo-700 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center">
+        <span id="btnText">Calcular</span>
+        <svg id="loadingSpinner" class="animate-spin -mr-1 ml-3 h-5 w-5 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+      </button>
+
+      <div id="resultado" class="text-center font-semibold text-lg mt-6 hidden transition-all duration-300 transform"></div>
+    </div>
+  </div>
+
+  <footer class="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
+    &copy; 2025 Vamyal S.A.
+  </footer>
+
+  <script>
+    // Función debounce para evitar múltiples requests
+    function debounce(func, delay) {
+      let timeoutId;
+      return function (...args) {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => func.apply(this, args), delay);
+      };
+    }
+
+    // Función para formatear número con separadores de miles
+    function formatNumber(num) {
+      return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    }
+    
+    // Función para obtener valor numérico sin formato
+    function getNumericValue(value) {
+      return parseFloat(value.replace(/\./g, '')) || 0;
+    }
+
+    // Función para calcular la cuota
+    async function calcularCuota() {
+      const capital = getNumericValue(document.getElementById('capital').value);
+      const plazo = parseInt(document.getElementById('plazo').value);
+      const resultado = document.getElementById('resultado');
+      const btn = document.getElementById('calcularBtn');
+
+      if (isNaN(capital) || isNaN(plazo) || capital <= 0 || plazo <= 0) {
+        resultado.textContent = 'Por favor ingrese capital y plazo válidos.';
+        resultado.className = 'text-center font-semibold text-amber-600 mt-4 transition-all duration-300 transform';
+        resultado.classList.remove('hidden');
+        return;
+      }
+
+      if (capital < 50000 || capital > 35000000) {
+        resultado.textContent = 'El capital debe estar entre ₲50.000 y ₲35.000.000.';
+        resultado.className = 'text-center font-semibold text-amber-600 mt-4 transition-all duration-300 transform';
+        resultado.classList.remove('hidden');
+        document.getElementById('capital').focus();
+        document.getElementById('capital').select();
+        document.getElementById('capital').value = '';
+        return;
+      }
+
+      if (plazo < 1 || plazo > 24) {
+        resultado.textContent = 'El plazo debe estar entre 1 y 24 meses.';
+        resultado.className = 'text-center font-semibold text-amber-600 mt-4 transition-all duration-300 transform';
+        resultado.classList.remove('hidden');
+        document.getElementById('plazo').focus();
+        document.getElementById('plazo').select();
+        document.getElementById('plazo').value = '';
+        return;
+      }
+
+      // Hacemos GET a /obtener-cuota/:monto/:plazo
+      const url = `https://api.cuotas.cabu.dev/obtener-cuota/${capital}/${plazo}`;
+
+      // Mostrar loading
+      btn.disabled = true;
+      const btnText = document.getElementById('btnText');
+      const loadingSpinner = document.getElementById('loadingSpinner');
+      
+      btnText.textContent = 'Calculando...';
+      loadingSpinner.classList.remove('hidden');
+      resultado.textContent = '';
+      resultado.classList.add('hidden');
+
+      try {
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+          throw new Error('No se pudo obtener la cuota');
+        }
+        
+        const data = await response.json();
+        
+        resultado.textContent = `La cuota mensual es ${data.montoCuota.toLocaleString('es-PY', {
+          style: 'currency',
+          currency: 'PYG'
+        })}`;
+        resultado.className = 'text-center font-semibold text-green-500 mt-4 transition-all duration-300 transform scale-105';
+        resultado.classList.remove('hidden');
+        
+      } catch (err) {
+        resultado.textContent = `Error: ${err.message}`;
+        resultado.className = 'text-center font-semibold text-red-500 mt-4 transition-all duration-300 transform';
+        resultado.classList.remove('hidden');
+      } finally {
+        btn.disabled = false;
+        btnText.textContent = 'Calcular';
+        loadingSpinner.classList.add('hidden');
+      }
+    }
+
+    // Crear versión debounced de la función
+    const calcularCuotaDebounced = debounce(calcularCuota, 300);
+
+    // Event listeners
+    document.getElementById('calcularBtn').addEventListener('click', calcularCuotaDebounced);
+    
+    // Formateo de capital con separadores de miles
+    const capitalInput = document.getElementById('capital');
+    capitalInput.addEventListener('input', (e) => {
+      let value = e.target.value.replace(/\./g, ''); // Remover puntos existentes
+      
+      // Solo permitir números
+      value = value.replace(/[^0-9]/g, '');
+      
+      if (value) {
+        const cursorPosition = e.target.selectionStart;
+        const originalLength = e.target.value.length;
+        
+        e.target.value = formatNumber(value);
+        
+        // Ajustar posición del cursor
+        const newLength = e.target.value.length;
+        const diff = newLength - originalLength;
+        e.target.setSelectionRange(cursorPosition + diff, cursorPosition + diff);
+      } else {
+        e.target.value = '';
+      }
+    });
+    
+    // Navegación con Enter
+    capitalInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        document.getElementById('plazo').focus();
+      }
+    });
+    
+    document.getElementById('plazo').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        calcularCuotaDebounced();
+      }
+    });
+  </script>
+</body>
+</html>
